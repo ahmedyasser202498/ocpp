@@ -28,7 +28,6 @@ class OCPPWebSocketConsumer(AsyncWebsocketConsumer):
 
         # Accept WebSocket connection
         await self.accept()
-        print(f"Channel Name: {OCPPWebSocketConsumer.charger_channels}",flush=True)
         self.charge_point = ChargePoint(self.channel_name, self)
         self.connected = True
 
@@ -39,16 +38,11 @@ class OCPPWebSocketConsumer(AsyncWebsocketConsumer):
         self.connected = False
 
     async def receive(self, req_data):
-        # Parse received message
         if isinstance(req_data, str):
-            req_data = json.loads(req_data )  # Parse the JSON string into a Python dictionary
+            req_data = json.loads(req_data )  
         else:
             req_data = req_data
 
-        print('message ',req_data,flush=True)
-        print(req_data['command'],flush=True)
-        
-        # Handle different OCPP messages
         if req_data['command'] == 'BootNotification':
             await self.handle_boot_notification(req_data)
         elif req_data['command'] == 'Heartbeat':
@@ -73,7 +67,6 @@ class OCPPWebSocketConsumer(AsyncWebsocketConsumer):
 
     async def handle_custom_action(self, message):
         """Handle any other custom actions"""
-        print(f"Custom action received from charger {self.room_name}: {message}")
         response = {
             "status": "Unknown action",
             "currentTime": datetime.utcnow().isoformat(),
@@ -110,7 +103,6 @@ class OCPPWebSocketConsumer(AsyncWebsocketConsumer):
 
     
     async def handle_start_transaction(self,req_data):
-        # Start the charging transaction
         transaction_id,error = await ChargingSessionService().start_transaction(req_data['charger_name'],req_data['data'])
         if error:
             response = {
@@ -148,10 +140,8 @@ class OCPPWebSocketConsumer(AsyncWebsocketConsumer):
     
     @classmethod
     async def send_to_charger(cls, charger_name, req_data):
-        # Get the channel_name for the charger
         channel_name = cls.charger_channels.get(charger_name)
 
-        print('send_to_charger',channel_name,flush=True)
         
         if channel_name:
             # Send the message to the charger using its channel_name
