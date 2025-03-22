@@ -1,0 +1,10 @@
+Django>=3.2,<4
+psycopg2
+channels
+channels_redis
+djangorestframework
+djangorestframework-simplejwt
+python-dotenv
+uvicorn
+uvicorn[standard]
+ocpp

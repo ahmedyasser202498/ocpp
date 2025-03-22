@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: ocpp_user
+      POSTGRES_PASSWORD: p123
+      POSTGRES_DB: ocpp_db
+    volumes:
+      - /var/lib/postgresql/data
+    ports:
+      - "5435:5432"
+    networks:
+      - ocpp_network
+
+  redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"  
+    networks:
+      - ocpp_network
+
+  web:
+    build: .
+    command: ["sh", "-c", "./wait-for-it.sh db 5432 -- python manage.py migrate && python manage.py create_chargers && python manage.py create_user && uvicorn ocpp_project.asgi:application --host 0.0.0.0 --port 8000"]
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+      - redis
+    networks:
+      - ocpp_network
+
+volumes:
+  postgres_data:
+
+networks:
+  ocpp_network:
+    driver: bridge
